@@ -1,0 +1,229 @@
+.labor-board {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.labor-board__inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.labor-board__header select {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.labor-board__error {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--color-wait-soft);
+  color: var(--color-wait);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.labor-board__empty {
+  color: var(--color-text-faint);
+  font-size: 0.9rem;
+}
+
+.labor-board__add-new {
+  align-self: flex-start;
+}
+
+/* ── role sections ── */
+
+.role-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.role-section:last-of-type {
+  border-bottom: none;
+}
+
+.role-section__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.role-section__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .role-section__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.role-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.role-column__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.role-column__label span {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.role-column__empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-faint);
+  font-style: italic;
+}
+
+.role-column__add {
+  align-self: flex-start;
+}
+
+.line-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line-card {
+  padding: 8px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.line-card--committed {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.line-card__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.line-card__fte {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.line-card__project {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-card__delete {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.line-card__delete:hover {
+  color: var(--color-critical);
+}
+
+.line-card__dates {
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-faint);
+  font-size: 11px;
+}
+
+.line-card__assigned {
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.line-card__assigned em {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-text-faint);
+}
+
+.line-card__note {
+  margin-top: 3px;
+  color: var(--color-text-secondary);
+}
+
+/* ── commit form ── */
+
+.commit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.commit-form__row {
+  display: flex;
+  gap: 6px;
+}
+
+.commit-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 12px;
+}
+
+.commit-form input[type='number'] {
+  flex: 0 0 70px;
+}
+
+.commit-form input[type='date'] {
+  flex: 1 1 auto;
+}
+
+.commit-form__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.commit-form__error {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--color-critical);
+}

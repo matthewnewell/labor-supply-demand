@@ -1,0 +1,150 @@
+.actuals-page {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.actuals-page__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actuals-page__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.actuals-page__hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.actuals-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
+}
+
+.actuals-page__field input,
+.actuals-page__textarea {
+  font: inherit;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text);
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.actuals-page__textarea {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  resize: vertical;
+}
+
+.actuals-page__preview {
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.actuals-page__preview p {
+  margin: 0 0 8px;
+}
+
+.actuals-page__more {
+  margin: 6px 0 0 !important;
+  font-style: italic;
+}
+
+.import-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.import-preview-table th {
+  text-align: left;
+  color: var(--color-text-faint);
+  font-weight: 700;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.import-preview-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.actuals-page__history {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actuals-page__history-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.actuals-page__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+.actuals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.actuals-table th {
+  text-align: left;
+  color: var(--color-text-faint);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.actuals-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.actuals-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.actuals-table__mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+}

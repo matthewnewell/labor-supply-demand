@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Labor Supply & Demand Backend",
+      "runtimeExecutable": "backend/.venv/bin/python",
+      "runtimeArgs": ["app.py"],
+      "cwd": "/home/matthew/labor-supply-demand/backend",
+      "port": 8098
+    },
+    {
+      "name": "Labor Supply & Demand Frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--host", "0.0.0.0"],
+      "cwd": "/home/matthew/labor-supply-demand/frontend",
+      "port": 5184
+    }
+  ]
+}
