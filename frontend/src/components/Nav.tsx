@@ -16,6 +16,12 @@ export default function Nav() {
           Board
         </NavLink>
         <NavLink
+          to="/timeline"
+          className={({ isActive }) => `lsd-nav__link ${isActive ? 'lsd-nav__link--active' : ''}`}
+        >
+          Timeline
+        </NavLink>
+        <NavLink
           to="/actuals"
           className={({ isActive }) => `lsd-nav__link ${isActive ? 'lsd-nav__link--active' : ''}`}
         >

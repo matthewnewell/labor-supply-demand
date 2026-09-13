@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import Nav from './components/Nav'
 import SplashPage from './pages/SplashPage'
 import LaborBoardPage from './pages/LaborBoardPage'
+import TimelinePage from './pages/TimelinePage'
 import ActualsPage from './pages/ActualsPage'
 import './App.css'
 
@@ -21,6 +22,7 @@ export default function App() {
     <Routes>
       <Route path="/about" element={<SplashPage />} />
       <Route path="/" element={<Layout><LaborBoardPage /></Layout>} />
+      <Route path="/timeline" element={<Layout><TimelinePage /></Layout>} />
       <Route path="/actuals" element={<Layout><ActualsPage /></Layout>} />
     </Routes>
   )
