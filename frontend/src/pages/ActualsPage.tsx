@@ -85,7 +85,7 @@ export default function ActualsPage() {
           <textarea
             className="actuals-page__textarea"
             rows={8}
-            placeholder={'Employee\tRole\tProject\tCharge Number\tPeriod\tHours\nPriya Nair\tMechanical Engineer\tDemo: Bracket Assembly Program\tCN-4471-10\t2026-09-01\t40'}
+            placeholder={'Employee\tRole\tProject\tCharge Number\tPeriod\tHours\nPriya Nair\tMechanical Engineer\tBracket Assembly Program\tCN-4471-10\t2026-09-01\t40'}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />

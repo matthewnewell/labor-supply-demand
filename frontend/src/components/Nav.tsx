@@ -9,17 +9,22 @@ export default function Nav() {
       </NavLink>
       <div className="lsd-nav__links">
         <NavLink
-          to="/"
-          end
+          to="/" end
           className={({ isActive }) => `lsd-nav__link ${isActive ? 'lsd-nav__link--active' : ''}`}
         >
-          Board
+          Staffing
         </NavLink>
         <NavLink
-          to="/timeline"
+          to="/people"
           className={({ isActive }) => `lsd-nav__link ${isActive ? 'lsd-nav__link--active' : ''}`}
         >
-          Timeline
+          People
+        </NavLink>
+        <NavLink
+          to="/fulfillment"
+          className={({ isActive }) => `lsd-nav__link ${isActive ? 'lsd-nav__link--active' : ''}`}
+        >
+          Fulfillment
         </NavLink>
         <NavLink
           to="/actuals"

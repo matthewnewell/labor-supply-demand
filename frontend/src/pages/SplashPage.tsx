@@ -11,16 +11,16 @@ const ROWS = [
 
 const FEATURES = [
   {
-    title: 'Demand, read live',
-    body: 'A project’s labor demand lives in Good Plan, not here. This app reads it live and never keeps its own copy — nothing to fall out of sync.',
+    title: 'Named, never just counted',
+    body: 'A project asks for a generic resource — a machinist, an engineer. A functional manager answers with a name from the org chart. Headcount alone never counts as covered.',
   },
   {
-    title: 'Committed, not just counted',
-    body: 'A commitment can name a real person, or just reserve headcount on a shift until someone’s named to it. Both are honest states — neither pretends to be the other.',
+    title: 'The whole person, across projects',
+    body: 'Each person’s load is summed over every position they’re named to and held against their capacity — so a double-booked engineer shows up before it becomes a problem.',
   },
   {
-    title: 'No fake precision',
-    body: 'Demand and commitment lines sit side by side, by role — not summed into one coverage percentage that would claim more certainty than either side actually has.',
+    title: 'Asked for vs. got',
+    body: 'Requested hours, hours with a name on them, and hours actually charged sit side by side — so a project that asked for labor and didn’t get it is visible, not assumed.',
   },
 ]
 
@@ -33,11 +33,11 @@ export default function SplashPage() {
           <header className="splash-hero">
             <h1 className="splash-hero__title">Labor Supply &amp; Demand</h1>
             <p className="splash-hero__sub">
-              See what every project is asking for, and commit real people or headcount against
-              it — side by side, role by role.
+              See what every project is asking for, and name the people who fill it — then see
+              what each project actually got.
             </p>
             <div className="splash-hero__actions">
-              <Link className="lsd-btn lsd-btn--primary" to="/">Open the board</Link>
+              <Link className="lsd-btn lsd-btn--primary" to="/">Open staffing</Link>
             </div>
           </header>
 
@@ -45,8 +45,8 @@ export default function SplashPage() {
             <div className="splash-mock">
               <div className="splash-mock__head">
                 <span>Role</span>
-                <span>Demand</span>
-                <span>Committed</span>
+                <span>Requested</span>
+                <span>Named</span>
               </div>
               {ROWS.map((r) => (
                 <div className="splash-mock__row" key={r.role}>

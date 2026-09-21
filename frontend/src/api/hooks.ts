@@ -1,86 +1,81 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { ActualLine, Commitment, DemandResponse } from './types'
+import type {
+  ActualLine,
+  Assignment,
+  FulfillmentProject,
+  Manager,
+  OverloadWeek,
+  PositionsResponse,
+  RosterResponse,
+} from './types'
 
-// ── Demand (read-only proxy onto Good Plan) ─────────────────────────────────────────────────
-
-export function useDemand(filters?: { project?: string; portfolio?: string }) {
-  const params = new URLSearchParams()
-  if (filters?.project) params.set('project', filters.project)
-  if (filters?.portfolio) params.set('portfolio', filters.portfolio)
-  const qs = params.toString()
+export function useHealth() {
   return useQuery({
-    queryKey: ['demand', filters?.project ?? null, filters?.portfolio ?? null],
-    queryFn: () => api.get<DemandResponse>(`/demand${qs ? `?${qs}` : ''}`),
-    refetchInterval: 30_000,
+    queryKey: ['health'],
+    queryFn: () => api.get<{ status: string; ai_configured: boolean }>('/health'),
+    staleTime: 60_000,
   })
 }
 
-export function useProjects() {
+// ── Positions (Good Plan's requests) and who is named to them ────────────────────────────────
+
+export function usePositions() {
   return useQuery({
-    queryKey: ['projects'],
-    queryFn: () => api.get<string[]>('/projects'),
+    queryKey: ['positions'],
+    queryFn: () => api.get<PositionsResponse>('/positions'),
+    refetchInterval: 60_000,
   })
 }
 
-export function useRoles() {
+export function useManagers() {
   return useQuery({
-    queryKey: ['roles'],
-    queryFn: () => api.get<string[]>('/roles'),
+    queryKey: ['managers'],
+    queryFn: () => api.get<{ managers: Manager[]; error: string | null }>('/managers'),
+    staleTime: 60_000,
   })
 }
 
-// ── Commitments ──────────────────────────────────────────────────────────────────────────────
-
-export function useCommitments(filters?: { project?: string; role?: string }) {
-  const params = new URLSearchParams()
-  if (filters?.project) params.set('project', filters.project)
-  if (filters?.role) params.set('role', filters.role)
-  const qs = params.toString()
+/** The people (from Org Charts) with their load. `managerId` = that functional manager's team. */
+export function useRoster(managerId?: string) {
   return useQuery({
-    queryKey: ['commitments', filters?.project ?? null, filters?.role ?? null],
-    queryFn: () => api.get<Commitment[]>(`/commitments${qs ? `?${qs}` : ''}`),
+    queryKey: ['roster', managerId ?? 'all'],
+    queryFn: () => api.get<RosterResponse>(`/roster${managerId ? `?manager_id=${encodeURIComponent(managerId)}` : ''}`),
+    refetchInterval: 60_000,
   })
 }
 
-function useInvalidateCommitments() {
+export function useFulfillment() {
+  return useQuery({
+    queryKey: ['fulfillment'],
+    queryFn: () => api.get<{ projects: FulfillmentProject[]; error: string | null; this_week: string }>('/fulfillment'),
+    refetchInterval: 60_000,
+  })
+}
+
+/** An assignment changes positions, the roster's load, and fulfillment all at once. */
+function useInvalidateStaffing() {
   const qc = useQueryClient()
   return () => {
-    qc.invalidateQueries({ queryKey: ['commitments'] })
-    qc.invalidateQueries({ queryKey: ['roles'] })
+    qc.invalidateQueries({ queryKey: ['positions'] })
+    qc.invalidateQueries({ queryKey: ['roster'] })
+    qc.invalidateQueries({ queryKey: ['fulfillment'] })
   }
 }
 
-export function useCreateCommitment() {
-  const invalidate = useInvalidateCommitments()
+export function useAssign() {
+  const invalidate = useInvalidateStaffing()
   return useMutation({
-    mutationFn: (data: {
-      project: string
-      portfolio?: string
-      role: string
-      fte: number
-      start_date: string
-      end_date: string
-      assigned_to?: string
-      note?: string
-    }) => api.post<Commitment>('/commitments', data),
+    mutationFn: (data: { position_id: string; person_id: string; start_date?: string; end_date?: string; note?: string }) =>
+      api.post<Assignment & { overload: OverloadWeek[] }>('/assignments', data),
     onSuccess: invalidate,
   })
 }
 
-export function useUpdateCommitment() {
-  const invalidate = useInvalidateCommitments()
+export function useUnassign() {
+  const invalidate = useInvalidateStaffing()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Omit<Commitment, 'id' | 'created_at'>> }) =>
-      api.put<Commitment>(`/commitments/${id}`, data),
-    onSuccess: invalidate,
-  })
-}
-
-export function useDeleteCommitment() {
-  const invalidate = useInvalidateCommitments()
-  return useMutation({
-    mutationFn: (id: string) => api.del(`/commitments/${id}`),
+    mutationFn: (id: string) => api.del(`/assignments/${id}`),
     onSuccess: invalidate,
   })
 }
@@ -103,6 +98,9 @@ export function useImportActuals() {
   return useMutation({
     mutationFn: (data: { source_label?: string; rows: Record<string, string>[] }) =>
       api.post<ActualLine[]>('/actuals/import', data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['actuals'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['actuals'] })
+      qc.invalidateQueries({ queryKey: ['fulfillment'] })
+    },
   })
 }

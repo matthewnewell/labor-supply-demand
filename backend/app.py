@@ -3,7 +3,9 @@ import os
 from flask import Flask, send_from_directory
 
 from db import init_db
+from routes.ai import bp as ai_bp
 from routes.labor import bp as labor_bp
+from routes.staffing import bp as staffing_bp
 from seed import seed_if_empty
 
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist")
@@ -15,13 +17,17 @@ def create_app():
 
     init_db(app)
     app.register_blueprint(labor_bp)
+    app.register_blueprint(staffing_bp)
+    app.register_blueprint(ai_bp)
 
     with app.app_context():
         seed_if_empty()
 
     @app.get("/api/health")
     def health():
-        return {"status": "ok"}
+        import ai_client
+
+        return {"status": "ok", "ai_configured": ai_client.is_configured()}
 
     # Serve the built frontend (Vite `dist/`) in production. In dev, the Vite dev server
     # handles the UI and proxies /api/* to this Flask process instead.
