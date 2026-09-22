@@ -3,8 +3,10 @@ from datetime import date, timedelta
 
 from flask import Blueprint, jsonify, request
 
+import depot_client
 import good_plan_client
 import org_client
+from charge_numbers import charge_number_for
 from db import db
 from models import ActualLine, Assignment
 from staffing_math import (
@@ -76,12 +78,76 @@ def list_managers():
     return jsonify({"managers": managers, "error": error})
 
 
+@bp.get("/functions")
+def list_functions():
+    """The functional taxonomy, passed through from Org Charts — what the Staffing page scopes
+    itself to (a Function and its designated manager), instead of an arbitrary manager pick."""
+    functions, error = org_client.fetch_functions()
+    return jsonify({"functions": functions, "error": error})
+
+
+@bp.get("/my-scope")
+def my_scope():
+    """What the Staffing page should open to for the person who launched it — their OWN
+    function(s), not an arbitrary pick or the whole company's open positions. `person_id` is a
+    Depot persona id (see lib/person.ts on the frontend); resolved to a name, then matched
+    against Org Charts' Function managers by that name (see depot_client's own doc comment for
+    why it's name, not id). A manager can own more than one Function (Alex Chen owns two) —
+    returns all of them. Empty `functions` is a normal answer (not a functional manager, or
+    Org Charts/Depot didn't answer), and the frontend falls back to browsing everything."""
+    person_id = request.args.get("person_id")
+    if not person_id:
+        return jsonify({"person_name": None, "functions": []})
+    name = depot_client.fetch_person_name(person_id)
+    if not name:
+        return jsonify({"person_name": None, "functions": []})
+    functions, _error = org_client.fetch_functions()
+    mine = [f for f in functions if f.get("manager_name") == name]
+    return jsonify({"person_name": name, "functions": mine})
+
+
+@bp.get("/my-charges")
+def my_charges():
+    """What an individual is supposed to charge to, over time, and what they actually charged —
+    for the Launchpad's own drawer tile (a person's answer, not a manager's). Same identity
+    resolution as /my-scope, one step further: the resolved name has to also BE a roster
+    person (an individual contributor with a labor category), not just a Function's manager —
+    most of the six Depot personas are managers with no Assignment of their own, so an empty
+    result here is a normal, expected answer for them, not a broken one."""
+    person_id = request.args.get("person_id")
+    name = depot_client.fetch_person_name(person_id) if person_id else None
+    if not name:
+        return jsonify({"person_name": None, "assignments": [], "actuals": []})
+
+    person = org_client.fetch_person_by_name(name)
+    positions, _gp_error = good_plan_client.fetch_positions()
+    wbs_by_position = {p["id"]: p.get("wbs") for p in positions}
+
+    assignments = []
+    if person:
+        rows = Assignment.query.filter_by(person_id=person["id"]).order_by(Assignment.project_name).all()
+        for a in rows:
+            assignments.append({
+                **a.to_dict(),
+                "charge_number": charge_number_for(a.project_name, wbs_by_position.get(a.position_id)),
+            })
+
+    actuals = [
+        a.to_dict()
+        for a in ActualLine.query.filter_by(employee=name).order_by(ActualLine.period_start.desc()).limit(20).all()
+    ]
+    return jsonify({"person_name": name, "assignments": assignments, "actuals": actuals})
+
+
 @bp.get("/roster")
 def roster():
-    """People from Org Charts (`?manager_id=` = that functional manager's team) with their weekly
-    load across every project and what they're named to. This is the org view and the
-    over-allocation view in one: load above capacity is flagged."""
-    people, error = org_client.fetch_roster(request.args.get("manager_id"), request.args.get("category"))
+    """People from Org Charts (`?function=` = that Function's people; `?manager_id=` = a
+    reporting-line manager's team) with their weekly load across every project and what they're
+    named to. This is the org view and the over-allocation view in one: load above capacity is
+    flagged."""
+    people, error = org_client.fetch_roster(
+        request.args.get("manager_id"), request.args.get("category"), request.args.get("function"),
+    )
     positions, gp_error = good_plan_client.fetch_positions()
     by_id = {p["id"]: p for p in positions}
     ids = {p["id"] for p in people}

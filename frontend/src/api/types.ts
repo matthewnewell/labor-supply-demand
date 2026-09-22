@@ -65,6 +65,7 @@ export interface RosterPerson {
   manager_id: string | null
   manager_name: string | null
   labor_category: string
+  function: string | null
   capacity_hours: number
   load: Record<string, number>
   peak_pct: number
@@ -84,6 +85,15 @@ export interface Manager {
   name: string
   title: string
   team_size: number
+}
+
+export interface FunctionRow {
+  id: string
+  name: string
+  categories: string[]
+  manager_id: string | null
+  manager_name: string | null
+  people_count: number
 }
 
 export interface FulfillmentBucket {

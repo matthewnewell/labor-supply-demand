@@ -4,6 +4,7 @@ import type {
   ActualLine,
   Assignment,
   FulfillmentProject,
+  FunctionRow,
   Manager,
   OverloadWeek,
   PositionsResponse,
@@ -36,12 +37,48 @@ export function useManagers() {
   })
 }
 
-/** The people (from Org Charts) with their load. `managerId` = that functional manager's team. */
-export function useRoster(managerId?: string) {
+/** The people (from Org Charts) with their load. `managerId` = a reporting-line manager's team;
+ * `functionName` = everyone whose category rolls up into that Function — the cut a Functional
+ * Manager actually assigns from. */
+export function useRoster(managerId?: string, functionName?: string) {
+  const params = new URLSearchParams()
+  if (managerId) params.set('manager_id', managerId)
+  if (functionName) params.set('function', functionName)
+  const qs = params.toString()
   return useQuery({
-    queryKey: ['roster', managerId ?? 'all'],
-    queryFn: () => api.get<RosterResponse>(`/roster${managerId ? `?manager_id=${encodeURIComponent(managerId)}` : ''}`),
+    queryKey: ['roster', managerId ?? 'all', functionName ?? 'all'],
+    queryFn: () => api.get<RosterResponse>(`/roster${qs ? `?${qs}` : ''}`),
     refetchInterval: 60_000,
+  })
+}
+
+/** The functional taxonomy — one Function per named discipline, each with its designated
+ * manager. What "Staffing as" scopes to now, instead of an arbitrary manager pick. */
+export function useFunctions() {
+  return useQuery({
+    queryKey: ['functions'],
+    queryFn: () => api.get<{ functions: FunctionRow[]; error: string | null }>('/functions'),
+    staleTime: 60_000,
+  })
+}
+
+/** What the Staffing page should open to for whoever launched it — their own Function(s), by
+ * name, resolved from the Depot person_id the Launchpad hands over. Empty is normal (not a
+ * functional manager, or nobody's identified) and just means "start on the wide view instead." */
+export function useMyScope(personId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-scope', personId ?? 'none'],
+    queryFn: () => api.get<{ person_name: string | null; functions: FunctionRow[] }>(`/my-scope?person_id=${encodeURIComponent(personId ?? '')}`),
+    enabled: !!personId,
+    staleTime: 60_000,
+  })
+}
+
+/** A one-shot Agent opinion on a single open position — "who could fill this without creating a
+ * gap or overlap for them" — surfaced inline on the Staffing page instead of a chat round-trip. */
+export function useSuggest() {
+  return useMutation({
+    mutationFn: (positionId: string) => api.post<{ reply: string }>(`/positions/${positionId}/suggest`, {}),
   })
 }
 

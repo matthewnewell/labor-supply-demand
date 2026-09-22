@@ -39,3 +39,45 @@
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }
+
+.lsd-nav__whoami {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.lsd-nav__whoami-avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lsd-nav__whoami-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.lsd-nav__whoami-text strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lsd-nav__whoami-text em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+}

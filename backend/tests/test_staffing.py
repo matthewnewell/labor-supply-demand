@@ -48,7 +48,7 @@ ROSTER = [
 def client(monkeypatch, tmp_path):
     monkeypatch.setenv("DATA_DIR", str(tmp_path))
     monkeypatch.setattr(good_plan_client, "fetch_positions", lambda project_id=None: ([p for p in POSITIONS if not project_id or p["depot_project_id"] == project_id], None))
-    monkeypatch.setattr(org_client, "fetch_roster", lambda manager_id=None, category=None: ([p for p in ROSTER if (not manager_id or p["manager_id"] == manager_id) and (not category or p["labor_category"] == category)], None))
+    monkeypatch.setattr(org_client, "fetch_roster", lambda manager_id=None, category=None, function=None: ([p for p in ROSTER if (not manager_id or p["manager_id"] == manager_id) and (not category or p["labor_category"] == category)], None))
     monkeypatch.setattr(org_client, "fetch_managers", lambda: ([{"id": "m1", "name": "Boss", "team_size": 2}], None))
     import app as app_module
 

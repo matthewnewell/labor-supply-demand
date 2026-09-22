@@ -1,0 +1,255 @@
+.tl {
+  /* Local to this component — distinct from any app-wide token, since neither exists as one:
+     a true yellow for the capacity band (not --color-wait's amber, which Actual already uses),
+     a blue for Actual, and an orange a caller can opt into for its own low/over band (see
+     Timeline's bandLowColor prop) when the default yellow would collide with another band on
+     the same page. --tl-band-low is what the low/over bars actually read; a caller overrides
+     it inline, everyone else gets the plain yellow. */
+  --tl-yellow: #eab308;
+  --tl-blue: #2563eb;
+  --tl-orange: #ea580c;
+  --tl-band-low: var(--tl-yellow);
+}
+
+.tl-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tl-controls__seg,
+.tl-controls__pager {
+  display: flex;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.tl-controls__seg button,
+.tl-controls__pager button {
+  padding: 5px 10px;
+  border: none;
+  border-right: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tl-controls__seg button:last-child,
+.tl-controls__pager button:last-child {
+  border-right: none;
+}
+
+.tl-controls__seg button.on {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.tl-controls__pager button:disabled {
+  opacity: 0.4;
+}
+
+.tl {
+  overflow-x: auto;
+}
+
+.tl-empty {
+  padding: 16px;
+  color: var(--color-text-faint);
+  font-size: 0.85rem;
+}
+
+.tl-grid {
+  display: grid;
+  --tl-label-w: 200px;
+  align-items: stretch;
+  min-width: 640px;
+}
+
+.tl-axis__spacer {
+  grid-column: 1;
+}
+
+.tl-axis__cell {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-faint);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.tl-axis__cell--now {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.tl-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tl-row__label {
+  grid-column: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px;
+}
+
+.tl-row__label strong {
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+
+.tl-row__label span {
+  font-size: 10.5px;
+  color: var(--color-text-faint);
+}
+
+.tl-cell {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 2px 3px 4px;
+  border-left: 1px solid var(--color-border);
+}
+
+.tl-cell--now {
+  background: var(--color-accent-soft);
+}
+
+.tl-cell__flag {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-critical);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+  cursor: default;
+}
+
+.tl-bar {
+  flex: 1;
+  min-width: 3px;
+  max-width: 8px;
+  border-radius: 1px 1px 0 0;
+}
+
+.tl-bar--plan {
+  background: var(--color-border-strong);
+}
+
+.tl-bar--committed {
+  background: var(--color-accent);
+}
+
+/* Its own color, distinct from the idle/over band below — the two used to share
+   --color-wait, which read as the same thing on the chart even though they mean
+   different facts (what was really charged vs. a capacity warning). */
+.tl-bar--actual {
+  background: var(--tl-blue);
+}
+
+.tl-bar--capacity {
+  background: var(--color-text-faint);
+  opacity: 0.5;
+}
+
+/* Colored against capacity (People's Committed, Team totals' Demand — see Timeline's bandKind
+   prop): idle/under and moderately-over both read as the same caution color, only serious
+   overcommitment is the alarm color. A true yellow, not --color-wait's amber, so it doesn't
+   read as the same color as Actual above. */
+.tl-bar--band-low {
+  background: var(--tl-band-low);
+}
+
+.tl-bar--band-mid {
+  background: var(--color-success);
+}
+
+.tl-bar--band-over {
+  background: var(--tl-band-low);
+}
+
+.tl-bar--band-hard {
+  background: var(--color-critical);
+}
+
+.tl-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  padding-left: var(--tl-label-w);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.tl-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tl-legend__item::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.tl-legend__item--plan::before {
+  background: var(--color-border-strong);
+}
+
+.tl-legend__item--committed::before {
+  background: var(--color-accent);
+}
+
+.tl-legend__item--actual::before {
+  background: var(--tl-blue);
+}
+
+.tl-legend__item--capacity::before {
+  background: var(--color-text-faint);
+  opacity: 0.5;
+}
+
+.tl-legend__band {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tl-legend__band b {
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.tl-legend__item--band-low::before {
+  background: var(--tl-band-low);
+}
+
+.tl-legend__item--band-mid::before {
+  background: var(--color-success);
+}
+
+.tl-legend__item--band-hard::before {
+  background: var(--color-critical);
+}

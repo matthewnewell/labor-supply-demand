@@ -114,3 +114,25 @@ def chat():
         return jsonify({"error": "messages (a non-empty list) is required"}), 400
     system = _SYSTEM + "\n\n" + "\n".join(_context_lines())
     return jsonify({"reply": ai_client.chat(messages=messages, system=system, max_tokens=1024)})
+
+
+@bp.post("/positions/<position_id>/suggest")
+def suggest(position_id):
+    """A one-shot opinion on a single open position, surfaced inline on the Staffing page —
+    the same Agent, the same staffing context, just asked a canned question instead of a chat
+    round-trip: who could fill this without creating a gap or overlap for them."""
+    if not ai_client.is_configured():
+        return jsonify({"error": ai_client.NOT_CONFIGURED_MESSAGE}), 200
+    positions, gp_err = good_plan_client.fetch_positions()
+    p = next((p for p in positions if p["id"] == position_id), None)
+    if p is None:
+        return jsonify({"error": gp_err or "That position wasn't found."}), 404
+    system = _SYSTEM + "\n\n" + "\n".join(_context_lines())
+    question = (
+        f"Who could fill \"{p['label']}\" on {p['project_name']} ({p['category']}, "
+        f"{p['first_week']} to {p['last_week']})? Prefer someone whose resulting load doesn't "
+        "create a new gap or overlap elsewhere for them. Answer in 2-3 sentences, naming specific "
+        "people, or say plainly if nobody fits well."
+    )
+    reply = ai_client.chat(messages=[{"role": "user", "content": question}], system=system, max_tokens=300)
+    return jsonify({"reply": reply})

@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom'
 import { useHealth, usePositions } from './api/hooks'
 import Nav from './components/Nav'
 import { readPersonId } from './lib/person'
-import ActualsPage from './pages/ActualsPage'
 import FulfillmentPage from './pages/FulfillmentPage'
 import PeoplePage from './pages/PeoplePage'
 import SplashPage from './pages/SplashPage'
@@ -61,7 +60,6 @@ export default function App() {
         <Route path="/" element={<Layout><StaffingPage /></Layout>} />
         <Route path="/people" element={<Layout><PeoplePage /></Layout>} />
         <Route path="/fulfillment" element={<Layout><FulfillmentPage /></Layout>} />
-        <Route path="/actuals" element={<Layout><ActualsPage /></Layout>} />
       </Routes>
     </>
   )

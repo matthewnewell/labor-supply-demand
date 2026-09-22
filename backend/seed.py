@@ -21,6 +21,7 @@ hand: backend/refresh_demo.py.
 
 from datetime import date, timedelta
 
+from charge_numbers import CHARGE_BASE
 from db import db
 from models import ActualLine, Assignment
 import good_plan_client
@@ -36,7 +37,6 @@ _FORCED = {
     ("Bracket Assembly Program", "Mechanical Engineer #1"): "Bruno Castillo",
     ("Radar Housing Production", "Mechanical Engineer #1"): "Bruno Castillo",
 }
-_CHARGE_BASE = {"Bracket Assembly Program": "CN-4471", "Nacelle Fairing Retrofit": "CN-5820", "Radar Housing Production": "CN-6103"}
 _FACTORS = [1.0, 0.95, 1.05, 0.9, 1.0, 0.85]
 
 
@@ -100,7 +100,7 @@ def apply_demo_staffing() -> dict:
     first = this_monday() - timedelta(weeks=6)
     actuals = 0
     for i, (a, pos) in enumerate(made):
-        base = _CHARGE_BASE.get(pos["project_name"])
+        base = CHARGE_BASE.get(pos["project_name"])
         if base is None:
             continue
         for j, (week, hours) in enumerate(sorted(pos["weeks"].items())):
