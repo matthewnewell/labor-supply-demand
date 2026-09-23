@@ -101,7 +101,10 @@ export default function PeoplePage() {
   // Team totals: this scope's whole demand against this scope's whole capacity — moved here
   // from Allocations, since "is my team oversubscribed" is a supply-side question, and supply
   // is what this page is already about. Only meaningful for a bounded scope; "Everyone" mixes
-  // capacity pools that were never meant to cover each other.
+  // capacity pools that were never meant to cover each other. The chart's own coloring (orange/
+  // green/red) already says which period, if any, is a problem — no separate banner repeating
+  // that in words, and deliberately no opposite "you need more work" alert either; a manager
+  // reads the chart and decides, the tool doesn't lecture either direction.
   const teamRow = useMemo(() => {
     if (showAll) return null
     const inScope = positions.filter((p) => activeCategories.has(p.category))
@@ -111,8 +114,7 @@ export default function PeoplePage() {
     }
     const capacity: Record<string, number> = {}
     for (const w of weeks) capacity[w] = people.reduce((sum, c) => sum + (c.capacity_hours || 40), 0)
-    const oversubscribed = Object.entries(plan).some(([w, h]) => h > (capacity[w] ?? 0))
-    return { row: { id: 'team', label: 'Team totals', series: { capacity, plan } } as TimelineRow, oversubscribed }
+    return { row: { id: 'team', label: 'Team totals', series: { capacity, plan } } as TimelineRow }
   }, [positions, activeCategories, people, weeks, showAll])
 
   // What this person could be named to instead/in addition — same category, still open. A
@@ -177,12 +179,6 @@ export default function PeoplePage() {
       {teamRow && (
         <section className="people__group-section people__team-totals">
           <h2 className="people__group-h2">Team totals</h2>
-          {teamRow.oversubscribed && (
-            <div className="people__banner people__banner--warn">
-              All of your people are committed for at least one period shown here. The project needs to reduce demand,
-              or you need to hire more people.
-            </div>
-          )}
           <Timeline
             rows={[teamRow.row]}
             weeks={weeks}
@@ -193,8 +189,9 @@ export default function PeoplePage() {
             seriesKinds={['capacity', 'plan']}
             bandKind="plan"
             bandTitle="Demand, against capacity:"
-            bandLabels={{ low: 'Awaiting assignment', mid: 'At capacity', hard: 'Over capacity' }}
+            bandLabels={{ low: '', mid: 'At capacity', hard: 'Over capacity' }}
             bandLowColor="var(--tl-orange)"
+            hideLowBand
           />
         </section>
       )}

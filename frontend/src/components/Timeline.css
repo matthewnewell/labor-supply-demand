@@ -160,6 +160,17 @@
   background: var(--color-accent);
 }
 
+/* Supply, colored by whether the person behind it is within their own capacity that period —
+   Staffing's Committed/Supply bar, when the caller supplies committedStatus; a flat purple
+   looked the same whether the person was fine or already stretched thin elsewhere. */
+.tl-bar--status-ok {
+  background: var(--color-success);
+}
+
+.tl-bar--status-over {
+  background: var(--color-critical);
+}
+
 /* Its own color, distinct from the idle/over band below — the two used to share
    --color-wait, which read as the same thing on the chart even though they mean
    different facts (what was really charged vs. a capacity warning). */
@@ -251,5 +262,13 @@
 }
 
 .tl-legend__item--band-hard::before {
+  background: var(--color-critical);
+}
+
+.tl-legend__item--status-ok::before {
+  background: var(--color-success);
+}
+
+.tl-legend__item--status-over::before {
   background: var(--color-critical);
 }

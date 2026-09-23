@@ -105,19 +105,20 @@ export default function StaffingPage() {
   const personById = useMemo(() => new Map((everyone?.people ?? []).map((c) => [c.id, c])), [everyone])
 
   // A position's own committed hours don't say whether the PERSON behind them is stretched thin
-  // — that depends on everything else they're on. Flags the weeks where they're over capacity,
-  // so "Bob is only overcommitted in February" shows up right on his row, not just in People.
-  function overcommitFlags(p: Position): Record<string, string> {
-    const flags: Record<string, string> = {}
+  // — that depends on everything else they're on. Marks the weeks they're over capacity, so
+  // Supply's color tells the two apart ("Bob is only overcommitted in February") instead of a
+  // flat color that reads the same whether he's fine or already stretched thin elsewhere.
+  function committedStatusFor(p: Position): Record<string, 'over'> {
+    const status: Record<string, 'over'> = {}
     for (const a of p.assignments) {
       const person = personById.get(a.person_id)
       if (!person) continue
       const cap = person.capacity_hours || 40
       for (const w of Object.keys(p.weeks)) {
-        if ((person.load[w] ?? 0) > cap) flags[w] = `${person.name} is over capacity this week`
+        if ((person.load[w] ?? 0) > cap) status[w] = 'over'
       }
     }
-    return flags
+    return status
   }
 
   const headline = showAll
@@ -222,7 +223,7 @@ export default function StaffingPage() {
             label: names.length > 0 ? `${names.join(' & ')}, ${p.label}` : p.label,
             sublabel: p.wbs ? `WBS ${p.wbs}` : undefined,
             series: { plan: p.weeks, committed, actual: actualsByKey.get(`${p.project_name}|${p.category}`) },
-            flags: overcommitFlags(p),
+            committedStatus: committedStatusFor(p),
             labelExtra: (
               <PositionStatusButton
                 position={p}
@@ -249,6 +250,7 @@ export default function StaffingPage() {
               windowMode={tc.windowMode}
               page={tc.page}
               seriesKinds={['plan', 'committed', 'actual']}
+              committedLabel="Supply"
             />
           </section>
         )

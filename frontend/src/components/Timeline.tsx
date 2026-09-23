@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildBuckets, bucketValue, windowSlice, type WindowMode, type Zoom } from '../lib/buckets'
 import './Timeline.css'
 
@@ -126,6 +126,12 @@ export interface TimelineRow {
   // though it's not one of this row's own series — Staffing uses this for "the person named
   // here is over capacity that week," which is a fact about them, not about this position.
   flags?: Record<string, string>
+  // Week -> whether the Committed bar that week is backed by someone within their own capacity
+  // ('ok') or not ('over') — a position's own coverage can look identical whether the person
+  // behind it is fine or already stretched thin elsewhere; this is what tells those two apart,
+  // instead of a flat color that reads the same either way. Omit to keep Committed's plain
+  // color (People bands it a different way, against its own capacity series).
+  committedStatus?: Record<string, 'ok' | 'over'>
 }
 
 /** The shared axis: real calendar buckets at a chosen zoom, Plan/Committed/Actual kept as
@@ -145,6 +151,8 @@ export default function Timeline({
   bandTitle,
   bandLabels,
   bandLowColor,
+  hideLowBand,
+  committedLabel,
 }: {
   weeks: string[]
   thisWeek: string
@@ -169,9 +177,28 @@ export default function Timeline({
   // on the same page — Team totals bands Demand and needed a color that doesn't read as the
   // same thing as People's own Committed band just below it.
   bandLowColor?: string
+  // "Low" (well under capacity) is a real, useful fact about a PERSON — idle capacity worth
+  // noticing. It isn't a useful fact about aggregate Demand — a quiet period isn't "awaiting
+  // assignment", it just hasn't been asked for yet, and coloring it implied something wrong
+  // that wasn't. Team totals sets this so a low period shows no bar at all, only Capacity.
+  hideLowBand?: boolean
+  // Committed reads as "Supply" on Staffing — the word "Committed" is right for a person's own
+  // hours (People), but a position's coverage is better named the other half of demand/supply.
+  committedLabel?: string
 }) {
   const buckets = useMemo(() => buildBuckets(weeks, zoom, thisWeek), [weeks, zoom, thisWeek])
   const visible = useMemo(() => windowSlice(buckets, zoom, windowMode, page), [buckets, zoom, windowMode, page])
+  const hasCommittedStatus = rows.some((r) => r.committedStatus)
+  const nowRef = useRef<HTMLDivElement>(null)
+
+  // The "now" column can exist in the visible window and still be scrolled off to the right —
+  // a row's own horizontal scrollbar has no visual hint that there's more to see, so a narrower
+  // window (Week's dense 12 columns especially) can look like it has no data at all when the
+  // real activity just hasn't scrolled into view yet. Bring it on screen whenever the window
+  // changes, instead of leaving that to be discovered.
+  useEffect(() => {
+    nowRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }, [zoom, windowMode, page])
 
   if (visible.length === 0) {
     return <p className="tl-empty">Nothing in range.</p>
@@ -182,7 +209,11 @@ export default function Timeline({
       <div className="tl-grid" style={{ gridTemplateColumns: `var(--tl-label-w) repeat(${visible.length}, 1fr)` }}>
         <div className="tl-axis__spacer" />
         {visible.map((b) => (
-          <div key={b.key} className={`tl-axis__cell${b.isCurrent ? ' tl-axis__cell--now' : ''}`}>
+          <div
+            key={b.key}
+            ref={b.isCurrent ? nowRef : undefined}
+            className={`tl-axis__cell${b.isCurrent ? ' tl-axis__cell--now' : ''}`}
+          >
             {b.label}
           </div>
         ))}
@@ -214,12 +245,29 @@ export default function Timeline({
                       const v = bucketValue(row.series[kind], b)
                       const pct = Math.min(100, Math.round((v / rowMax) * 100))
                       const band = kind === bandKind ? capacityBand(v, bucketValue(row.series.capacity, b)) : null
+                      // Committed's color says whether the person behind it is over capacity
+                      // THAT period, when the caller knows — a fact about them, not this row's
+                      // own numbers, so it can't come from capacityBand like the ratio bands do.
+                      const status = kind === 'committed' && v > 0 && row.committedStatus
+                        ? (b.weeks.some((w) => row.committedStatus![w] === 'over') ? 'over' : 'ok')
+                        : null
+                      const cls = status
+                        ? `tl-bar tl-bar--status-${status}`
+                        : band
+                          ? `tl-bar tl-bar--band-${band}`
+                          : `tl-bar tl-bar--${kind}`
+                      const label = kind === 'committed' ? (committedLabel ?? SERIES_LABEL.committed) : SERIES_LABEL[kind]
+                      const hidden = hideLowBand && band === 'low'
                       return (
                         <span
                           key={kind}
-                          className={band ? `tl-bar tl-bar--band-${band}` : `tl-bar tl-bar--${kind}`}
-                          style={{ height: v > 0 ? `${Math.max(6, pct)}%` : 0 }}
-                          title={v > 0 ? `${SERIES_LABEL[kind]} · ${b.label} · ${Math.round(v)} h${band ? ` · ${band}` : ''}` : undefined}
+                          className={cls}
+                          style={{ height: v > 0 && !hidden ? `${Math.max(6, pct)}%` : 0 }}
+                          title={
+                            v > 0 && !hidden
+                              ? `${label} · ${b.label} · ${Math.round(v)} h${status === 'over' ? ' · person over capacity' : band ? ` · ${band}` : ''}`
+                              : undefined
+                          }
                         />
                       )
                     })}
@@ -235,13 +283,21 @@ export default function Timeline({
           k === bandKind ? (
             <span key={k} className="tl-legend__band">
               <b>{bandTitle ?? `${SERIES_LABEL[k]}, against capacity:`}</b>
-              <span className="tl-legend__item tl-legend__item--band-low">{bandLabels?.low ?? 'Under or slightly over'}</span>
+              {!hideLowBand && (
+                <span className="tl-legend__item tl-legend__item--band-low">{bandLabels?.low ?? 'Under or slightly over'}</span>
+              )}
               <span className="tl-legend__item tl-legend__item--band-mid">{bandLabels?.mid ?? 'At capacity'}</span>
               <span className="tl-legend__item tl-legend__item--band-hard">{bandLabels?.hard ?? 'Over capacity'}</span>
             </span>
+          ) : k === 'committed' && hasCommittedStatus ? (
+            <span key={k} className="tl-legend__band">
+              <b>{committedLabel ?? SERIES_LABEL.committed}, by the person's own capacity:</b>
+              <span className="tl-legend__item tl-legend__item--status-ok">OK</span>
+              <span className="tl-legend__item tl-legend__item--status-over">Person over capacity</span>
+            </span>
           ) : (
             <span key={k} className={`tl-legend__item tl-legend__item--${k}`}>
-              {SERIES_LABEL[k]}
+              {k === 'committed' ? (committedLabel ?? SERIES_LABEL.committed) : SERIES_LABEL[k]}
             </span>
           ),
         )}
