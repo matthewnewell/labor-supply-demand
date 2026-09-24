@@ -135,3 +135,53 @@ export interface ActualLine {
   hours: number
   created_at: string
 }
+
+// ── Outlook: the big picture (routes/outlook.py) ──────────────────────────────────────────────
+export interface OutlookPursuit {
+  name: string | null
+  status: string | null
+  gate: string | null
+  customer: string | null
+  p_win: number | null
+  p_go: number | null
+}
+
+export interface OutlookProject {
+  id: string
+  name: string
+  portfolio: string | null
+  phase: string | null
+  awarded: boolean
+  first_week: string
+  last_week: string
+  plan_hours: number
+  positions: number
+  open_positions: number
+  pursuit: OutlookPursuit | null
+  links: { depot: string; good_plan: string; winmax?: string; reckon?: string }
+}
+
+export interface OutlookCategory {
+  name: string
+  function: string
+  headcount: number
+  capacity_hours: number
+}
+
+export interface OutlookSeries {
+  project_id: string
+  category: string
+  plan: Record<string, number>
+  committed: Record<string, number>
+  actual: Record<string, number>
+}
+
+export interface OutlookResponse {
+  projects: OutlookProject[]
+  functions: string[]
+  categories: OutlookCategory[]
+  series: OutlookSeries[]
+  weeks: string[]
+  this_week: string
+  errors: string[]
+}

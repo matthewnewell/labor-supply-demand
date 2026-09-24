@@ -113,6 +113,14 @@ export function capacityBand(committed: number, capacity: number): Band | null {
   return 'low'
 }
 
+/** Booked under this share of capacity counts as waiting for work (Good Plan's own "low" line). */
+export const IDLE_RATIO = 0.6
+
+/** Is this period, now or ahead, booked so lightly that the person (or team) is waiting for work? */
+export function isIdle(booked: number, capacity: number): boolean {
+  return capacity > 0 && booked / capacity < IDLE_RATIO
+}
+
 export interface TimelineRow {
   id: string
   label: string
@@ -153,6 +161,7 @@ export default function Timeline({
   bandLowColor,
   hideLowBand,
   committedLabel,
+  idleSeries,
 }: {
   weeks: string[]
   thisWeek: string
@@ -185,6 +194,10 @@ export default function Timeline({
   // Committed reads as "Supply" on Staffing — the word "Committed" is right for a person's own
   // hours (People), but a position's coverage is better named the other half of demand/supply.
   committedLabel?: string
+  // Mark every current or future period where this series is under IDLE_RATIO of capacity as
+  // "awaiting assignment": keeping people booked is the functional manager's job, so a gap
+  // ahead is shown, not left for someone to notice. Past periods can't be fixed and aren't marked.
+  idleSeries?: SeriesKind
 }) {
   const buckets = useMemo(() => buildBuckets(weeks, zoom, thisWeek), [weeks, zoom, thisWeek])
   const visible = useMemo(() => windowSlice(buckets, zoom, windowMode, page), [buckets, zoom, windowMode, page])
@@ -238,8 +251,16 @@ export default function Timeline({
               {visible.map((b) => {
                 const flagged = row.flags && b.weeks.filter((w) => row.flags![w])
                 const flagTitle = flagged && flagged.length > 0 ? flagged.map((w) => row.flags![w]).join(' · ') : null
+                const ahead = b.weeks.some((w) => w >= thisWeek)
+                const cap = bucketValue(row.series.capacity, b)
+                const booked = idleSeries ? bucketValue(row.series[idleSeries], b) : 0
+                const idle = !!idleSeries && ahead && isIdle(booked, cap)
                 return (
-                  <div key={b.key} className={`tl-cell${b.isCurrent ? ' tl-cell--now' : ''}`}>
+                  <div
+                    key={b.key}
+                    className={`tl-cell${b.isCurrent ? ' tl-cell--now' : ''}${idle ? ' tl-cell--idle' : ''}`}
+                    title={idle ? `${row.label} · ${b.label} · awaiting assignment: ${Math.round(cap - booked)} h open of ${Math.round(cap)} h` : undefined}
+                  >
                     {flagTitle && <span className="tl-cell__flag" title={flagTitle}>!</span>}
                     {seriesKinds.map((kind) => {
                       const v = bucketValue(row.series[kind], b)
@@ -279,6 +300,7 @@ export default function Timeline({
         })}
       </div>
       <div className="tl-legend">
+        {idleSeries && <span className="tl-legend__item tl-legend__item--idle">Awaiting assignment</span>}
         {seriesKinds.map((k) =>
           k === bandKind ? (
             <span key={k} className="tl-legend__band">

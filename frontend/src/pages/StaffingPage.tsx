@@ -6,7 +6,11 @@ import { num, shortDateYear } from '../lib/dates'
 import Timeline, { TimelineControls, useTimelineControls, type TimelineRow } from '../components/Timeline'
 import './StaffingPage.css'
 
-const SCOPE_KEY = 'lsd:scope'
+// Keyed per person, not a single global key — otherwise whichever function a *previous*
+// identity last browsed here (e.g. someone landing as a Manufacturing manager) would stick and
+// silently override the next identity's own default, defeating "opens on the manager's OWN
+// function(s)" below for anyone who isn't the first person to ever use this browser tab.
+const SCOPE_KEY_PREFIX = 'lsd:scope:'
 // "My people" — whichever Function(s) the launching person manages, resolved server-side from
 // the Depot person_id. "All functions" is a deliberate, explicit opt-in to the wide view — the
 // default for a manager should never be the whole company's open positions (see PositionRow's
@@ -24,6 +28,7 @@ type StatusFilter = 'all' | 'open' | 'filled'
  * in that same category, company-wide, which is the correct pool regardless of who's viewing. */
 export default function StaffingPage() {
   const personId = readPersonId()
+  const scopeKey = SCOPE_KEY_PREFIX + (personId ?? 'anon')
   const { data: myScopeData } = useMyScope(personId)
   const myFunctionNames = useMemo(() => (myScopeData?.functions ?? []).map((f) => f.name), [myScopeData])
 
@@ -32,7 +37,7 @@ export default function StaffingPage() {
 
   const [storedScope, setStoredScope] = useState(() => {
     try {
-      return window.localStorage.getItem(SCOPE_KEY) ?? ''
+      return window.localStorage.getItem(scopeKey) ?? ''
     } catch {
       return ''
     }
@@ -41,7 +46,7 @@ export default function StaffingPage() {
   function chooseScope(value: string) {
     setStoredScope(value)
     try {
-      window.localStorage.setItem(SCOPE_KEY, value)
+      window.localStorage.setItem(scopeKey, value)
     } catch {
       /* not remembered */
     }

@@ -3,14 +3,17 @@ import { useActuals, useAssign, useFunctions, useMyScope, usePositions, useRoste
 import { readPersonId } from '../lib/person'
 import type { Position, RosterPerson } from '../api/types'
 import { num, shortDate } from '../lib/dates'
-import Timeline, { TimelineControls, useTimelineControls, type TimelineRow } from '../components/Timeline'
+import Timeline, { TimelineControls, isIdle, useTimelineControls, type TimelineRow } from '../components/Timeline'
 import './PeoplePage.css'
 
-// Same key Staffing uses — the two pages share one "who am I looking at" scope, so switching
-// tabs doesn't reset it. See StaffingPage.tsx for the full rationale.
-const SCOPE_KEY = 'lsd:scope'
+// Same key prefix Staffing uses — the two pages share one "who am I looking at" scope per
+// person, so switching tabs doesn't reset it, but switching identity (a fresh person_id) does.
+// See StaffingPage.tsx for the full rationale.
+const SCOPE_KEY_PREFIX = 'lsd:scope:'
 const MINE = '__mine__'
 const ALL = '__all__'
+// How far ahead "waiting for work" looks: the next 13 weeks, about a quarter.
+const LOOKAHEAD_WEEKS = 13
 
 /** The people a functional manager owns and what they're named to, on the same shared timeline
  * Staffing uses (see components/Timeline.tsx) — Committed load, what they've actually charged,
@@ -20,6 +23,7 @@ const ALL = '__all__'
  * mine to worry about or someone else's. */
 export default function PeoplePage() {
   const personId = readPersonId()
+  const scopeKey = SCOPE_KEY_PREFIX + (personId ?? 'anon')
   const { data: myScopeData } = useMyScope(personId)
   const myFunctionNames = useMemo(() => (myScopeData?.functions ?? []).map((f) => f.name), [myScopeData])
 
@@ -27,7 +31,7 @@ export default function PeoplePage() {
   const functions = functionsData?.functions ?? []
   const [storedScope, setStoredScope] = useState(() => {
     try {
-      return window.localStorage.getItem(SCOPE_KEY) ?? ''
+      return window.localStorage.getItem(scopeKey) ?? ''
     } catch {
       return ''
     }
@@ -36,7 +40,7 @@ export default function PeoplePage() {
   function chooseScope(value: string) {
     setStoredScope(value)
     try {
-      window.localStorage.setItem(SCOPE_KEY, value)
+      window.localStorage.setItem(scopeKey, value)
     } catch {
       /* not remembered */
     }
@@ -93,18 +97,31 @@ export default function PeoplePage() {
     return [...m.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [people])
 
+  // Who's waiting for work in the next quarter: weeks booked under 60% of capacity. Keeping the
+  // team booked (not too much, not too little) is the functional manager's job, so these are
+  // called out at the top rather than left for someone to spot in the chart.
+  const waiting = useMemo(() => {
+    const ahead = weeks.filter((w) => w >= thisWeek).slice(0, LOOKAHEAD_WEEKS)
+    return people
+      .map((p) => {
+        const cap = p.capacity_hours || 40
+        const idleWeeks = ahead.filter((w) => isIdle(p.load[w] ?? 0, cap))
+        const open = idleWeeks.reduce((sum, w) => sum + Math.max(cap - (p.load[w] ?? 0), 0), 0)
+        return { person: p, idleWeeks, open }
+      })
+      .filter((x) => x.idleWeeks.length >= 2)
+      .sort((a, b) => b.open - a.open)
+  }, [people, weeks, thisWeek])
+
   const overCount = people.filter((p) => p.over_weeks > 0).length
   const idle = people.filter((p) => Object.keys(p.load).length === 0).length
   const openPerson = open ? people.find((p) => p.id === open) : undefined
 
   const positions = posData?.positions ?? []
-  // Team totals: this scope's whole demand against this scope's whole capacity — moved here
-  // from Allocations, since "is my team oversubscribed" is a supply-side question, and supply
-  // is what this page is already about. Only meaningful for a bounded scope; "Everyone" mixes
-  // capacity pools that were never meant to cover each other. The chart's own coloring (orange/
-  // green/red) already says which period, if any, is a problem — no separate banner repeating
-  // that in words, and deliberately no opposite "you need more work" alert either; a manager
-  // reads the chart and decides, the tool doesn't lecture either direction.
+  // Team totals: this scope's whole demand against this scope's whole capacity, since "is my team
+  // over- or under-booked" is a supply-side question. Only meaningful for a bounded scope;
+  // "Everyone" mixes capacity pools that were never meant to cover each other. Periods ahead with
+  // too little demand are marked "awaiting assignment", the same as each person's own row.
   const teamRow = useMemo(() => {
     if (showAll) return null
     const inScope = positions.filter((p) => activeCategories.has(p.category))
@@ -132,7 +149,8 @@ export default function PeoplePage() {
         <div>
           <h1>{headline}</h1>
           <p>
-            {people.length} people · {overCount} over-allocated · {idle} not named to anything yet.
+            {people.length} people · {overCount} over-allocated · {waiting.length} waiting for work in the next quarter
+            {idle > 0 && ` (${idle} not named to anything at all)`}.
             {!showAll && ' Everyone here is in this scope — nobody from another function.'} Hours are what each person is named
             to, summed across every project.
           </p>
@@ -161,6 +179,34 @@ export default function PeoplePage() {
       )}
 
       {data?.error && <div className="people__banner">{data.error}</div>}
+
+      {waiting.length > 0 && (
+        <section className="people__waiting" aria-label="Waiting for work">
+          <div className="people__waiting-head">
+            <strong>
+              {waiting.length} {waiting.length === 1 ? 'person is' : 'people are'} waiting for work in the next quarter
+            </strong>
+            <span>Booked under 60% of capacity. Click someone to see open positions they could be named to.</span>
+          </div>
+          <div className="people__waiting-list">
+            {waiting.map(({ person, idleWeeks, open: hours }) => (
+              <button
+                key={person.id}
+                className={`people__waiting-chip${open === person.id ? ' people__waiting-chip--on' : ''}`}
+                onClick={() => {
+                  setOpen(person.id)
+                  window.setTimeout(() => document.querySelector('.people__detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+                }}
+              >
+                <strong>{person.name}</strong>
+                <span>
+                  {shortDate(idleWeeks[0])}–{shortDate(idleWeeks[idleWeeks.length - 1])} · {num(hours)} h open
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
       {isLoading && <div className="people__empty">Loading…</div>}
 
       {people.length > 0 && (
@@ -192,6 +238,7 @@ export default function PeoplePage() {
             bandLabels={{ low: '', mid: 'At capacity', hard: 'Over capacity' }}
             bandLowColor="var(--tl-orange)"
             hideLowBand
+            idleSeries="plan"
           />
         </section>
       )}
@@ -223,6 +270,7 @@ export default function PeoplePage() {
               page={tc.page}
               seriesKinds={['capacity', 'committed', 'actual']}
               bandKind="committed"
+              idleSeries="committed"
               onRowClick={(id) => setOpen(open === id ? null : id)}
             />
           </section>

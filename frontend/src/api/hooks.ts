@@ -6,6 +6,7 @@ import type {
   FulfillmentProject,
   FunctionRow,
   Manager,
+  OutlookResponse,
   OverloadWeek,
   PositionsResponse,
   RosterResponse,
@@ -78,7 +79,7 @@ export function useMyScope(personId: string | undefined) {
  * gap or overlap for them" — surfaced inline on the Staffing page instead of a chat round-trip. */
 export function useSuggest() {
   return useMutation({
-    mutationFn: (positionId: string) => api.post<{ reply: string }>(`/positions/${positionId}/suggest`, {}),
+    mutationFn: (positionId: string) => api.post<{ reply: string; error?: string }>(`/positions/${positionId}/suggest`, {}),
   })
 }
 
@@ -139,5 +140,15 @@ export function useImportActuals() {
       qc.invalidateQueries({ queryKey: ['actuals'] })
       qc.invalidateQueries({ queryKey: ['fulfillment'] })
     },
+  })
+}
+
+// ── Outlook: the big picture ──────────────────────────────────────────────────────────────────
+
+export function useOutlook() {
+  return useQuery({
+    queryKey: ['outlook'],
+    queryFn: () => api.get<OutlookResponse>('/outlook'),
+    refetchInterval: 60_000,
   })
 }

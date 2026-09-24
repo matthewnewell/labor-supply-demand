@@ -35,7 +35,7 @@ def test_import_actuals(client):
     res = client.post("/api/actuals/import", json={
         "source_label": "S4 labor extract",
         "rows": [
-            {"employee": "Test Person", "role": "Engineer", "project": "Bracket Assembly Program",
+            {"employee": "Test Person", "role": "Engineer", "project": "Bracket Assembly Project",
              "charge_number": "CN-TEST", "period_start": "2026-01-05", "hours": 40},
         ],
     })

@@ -8,7 +8,7 @@ and /api/my-charges both derive from it, so what a person is told to charge to a
 """
 
 CHARGE_BASE = {
-    "Bracket Assembly Program": "CN-4471",
+    "Bracket Assembly Project": "CN-4471",
     "Nacelle Fairing Retrofit": "CN-5820",
     "Radar Housing Production": "CN-6103",
 }

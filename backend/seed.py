@@ -30,11 +30,11 @@ from staffing_math import this_monday
 
 # (project, position label) -> person, where the story needs a specific name
 _FORCED = {
-    ("Bracket Assembly Program", "Program Manager"): "Sam Ortiz",
+    ("Bracket Assembly Project", "Program Manager"): "Sam Ortiz",
     ("Nacelle Fairing Retrofit", "Program Manager"): "Sam Ortiz",
     ("Radar Housing Production", "Program Manager"): "Sam Ortiz",
     ("Prospect: Coastal Patrol Recompete", "Program Manager #1"): "Tobias Ehrlich",
-    ("Bracket Assembly Program", "Mechanical Engineer #1"): "Bruno Castillo",
+    ("Bracket Assembly Project", "Mechanical Engineer #1"): "Bruno Castillo",
     ("Radar Housing Production", "Mechanical Engineer #1"): "Bruno Castillo",
 }
 _FACTORS = [1.0, 0.95, 1.05, 0.9, 1.0, 0.85]

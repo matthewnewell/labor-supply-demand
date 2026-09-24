@@ -1,11 +1,11 @@
-import { DepotBackBar, DrawerLayout } from '@conways/drawer'
-import { Route, Routes } from 'react-router-dom'
+import { DrawerLayout } from '@conways/drawer'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { useHealth, usePositions } from './api/hooks'
 import Nav from './components/Nav'
 import { readPersonId } from './lib/person'
 import FulfillmentPage from './pages/FulfillmentPage'
+import OutlookPage from './pages/OutlookPage'
 import PeoplePage from './pages/PeoplePage'
-import SplashPage from './pages/SplashPage'
 import StaffingPage from './pages/StaffingPage'
 import './App.css'
 
@@ -54,9 +54,10 @@ function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <>
-      <DepotBackBar />
       <Routes>
-        <Route path="/about" element={<SplashPage />} />
+        {/* The Outlook replaced the old splash page; /about still lands somewhere useful. */}
+        <Route path="/about" element={<Navigate to="/outlook" replace />} />
+        <Route path="/outlook" element={<Layout><OutlookPage /></Layout>} />
         <Route path="/" element={<Layout><StaffingPage /></Layout>} />
         <Route path="/people" element={<Layout><PeoplePage /></Layout>} />
         <Route path="/fulfillment" element={<Layout><FulfillmentPage /></Layout>} />

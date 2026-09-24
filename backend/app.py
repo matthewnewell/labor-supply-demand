@@ -5,6 +5,7 @@ from flask import Flask, send_from_directory
 from db import init_db
 from routes.ai import bp as ai_bp
 from routes.labor import bp as labor_bp
+from routes.outlook import bp as outlook_bp
 from routes.staffing import bp as staffing_bp
 from seed import seed_if_empty
 
@@ -19,6 +20,7 @@ def create_app():
     app.register_blueprint(labor_bp)
     app.register_blueprint(staffing_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(outlook_bp)
 
     with app.app_context():
         seed_if_empty()
