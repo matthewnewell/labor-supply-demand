@@ -2,7 +2,8 @@ import { AppHeader, tabClass } from '@conways/drawer'
 import { NavLink } from 'react-router-dom'
 
 /** The ecosystem's shared header (@conways/drawer's AppHeader): back to where you came from in
- * Conway's Depot, the app and its tabs, and the "viewing as" user menu. */
+ * Conway's Depot, the app and its tabs, and the "viewing as" user menu. The Outlook has no tab
+ * of its own: it's the app's home, reached through the brand. */
 export default function Nav() {
   return (
     <AppHeader
@@ -12,9 +13,6 @@ export default function Nav() {
         </NavLink>
       }
     >
-      <NavLink to="/outlook" className={({ isActive }) => tabClass(isActive)}>
-        Outlook
-      </NavLink>
       <NavLink to="/people" className={({ isActive }) => tabClass(isActive)}>
         People
       </NavLink>
