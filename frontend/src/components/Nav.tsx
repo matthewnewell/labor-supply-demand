@@ -8,7 +8,7 @@ export default function Nav() {
   return (
     <AppHeader
       brand={
-        <NavLink to="/outlook" className="ch-brand">
+        <NavLink to="/" className="ch-brand">
           Labor Supply &amp; Demand
         </NavLink>
       }
@@ -16,7 +16,7 @@ export default function Nav() {
       <NavLink to="/people" className={({ isActive }) => tabClass(isActive)}>
         People
       </NavLink>
-      <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
+      <NavLink to="/allocations" className={({ isActive }) => tabClass(isActive)}>
         Allocations
       </NavLink>
       <NavLink to="/fulfillment" className={({ isActive }) => tabClass(isActive)}>

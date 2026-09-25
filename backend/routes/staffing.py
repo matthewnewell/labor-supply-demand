@@ -349,14 +349,16 @@ def summary():
     a position goes unstaffed in the next eight weeks."""
     project_id = request.args.get("project_id")
     positions, _ = good_plan_client.fetch_positions(project_id)
+    # No positions: the Outlook (home). Otherwise: that project's positions on the Allocations page.
     href = f"{FRONTEND_BASE_URL}/"
+    project_href = f"{FRONTEND_BASE_URL}/allocations?project={project_id}"
     if not positions:
         return jsonify({"headline": None, "label": "No labor requested yet", "status": None, "href": href})
     if all(p.get("phase") == "pursuit" for p in positions):
         # A bid isn't staffed until it's won: this is pipeline demand, not a gap.
         return jsonify({
             "headline": str(len(positions)), "label": "positions requested · pipeline, staffed if the bid is won",
-            "status": None, "href": f"{href}?project={project_id}",
+            "status": None, "href": project_href,
         })
     by_pos = _by_position(Assignment.query.all())
     filled = now_gap = soon_gap = 0
@@ -368,4 +370,4 @@ def summary():
     open_n = len(positions) - filled
     status = "critical" if now_gap else "warn" if soon_gap else "ok"
     label = "positions fully named" + (f" · {open_n} still open" if open_n else "")
-    return jsonify({"headline": f"{filled}/{len(positions)}", "label": label, "status": status, "href": f"{href}?project={project_id}"})
+    return jsonify({"headline": f"{filled}/{len(positions)}", "label": label, "status": status, "href": project_href})

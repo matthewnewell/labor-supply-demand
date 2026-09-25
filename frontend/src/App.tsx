@@ -55,10 +55,12 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* The Outlook replaced the old splash page; /about still lands somewhere useful. */}
-        <Route path="/about" element={<Navigate to="/outlook" replace />} />
-        <Route path="/outlook" element={<Layout><OutlookPage /></Layout>} />
-        <Route path="/" element={<Layout><StaffingPage /></Layout>} />
+        {/* The Outlook (leadership's big picture) is the home page: the Launchpad, Test Drive and
+            the brand all land here. /about and the Outlook's old /outlook address redirect to it. */}
+        <Route path="/" element={<Layout><OutlookPage /></Layout>} />
+        <Route path="/about" element={<Navigate to="/" replace />} />
+        <Route path="/outlook" element={<Navigate to="/" replace />} />
+        <Route path="/allocations" element={<Layout><StaffingPage /></Layout>} />
         <Route path="/people" element={<Layout><PeoplePage /></Layout>} />
         <Route path="/fulfillment" element={<Layout><FulfillmentPage /></Layout>} />
       </Routes>
